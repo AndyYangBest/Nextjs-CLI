@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { SideNav } from "@/components/layout/side-nav";
 import { NavItems } from "@/components/constants/side-nav";
-
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/hooks/useSidebar";
 import { BsArrowLeftShort } from "react-icons/bs";
+import { DashboardHistoryNav } from "@/components/dashboard/DashboardHistoryNav";
 
 interface SidebarProps {
   className?: string;
@@ -19,6 +19,7 @@ export default function Sidebar({ className }: SidebarProps) {
     toggle();
     setTimeout(() => setStatus(false), 500);
   };
+
   return (
     <nav
       className={cn(
@@ -38,10 +39,9 @@ export default function Sidebar({ className }: SidebarProps) {
       <div className="space-y-4 py-4">
         <div className="px-3 py-2">
           <div className="mt-3 space-y-1">
-            <SideNav
-              className="text-background opacity-0 transition-all duration-300 group-hover:z-50 group-hover:ml-4 group-hover:rounded group-hover:bg-foreground group-hover:p-2 group-hover:opacity-100"
-              items={NavItems}
-            />
+            <SideNav items={NavItems} />
+            {isOpen && <DashboardHistoryNav />}{" "}
+            {/* Only show history when sidebar is open */}
           </div>
         </div>
       </div>

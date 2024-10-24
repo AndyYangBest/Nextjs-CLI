@@ -7,7 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { Layout } from "@/components/layout";
 import { Toaster } from "react-hot-toast";
 import { Toaster as ShadcnToaster } from "@/components/ui/toaster";
-
+import { DashboardProvider } from '@/components/dashboard/DashboardContext';
 import "@/styles/globals.css";
 
 const MyApp: AppType<{ session: Session | null }> = ({
@@ -17,11 +17,13 @@ const MyApp: AppType<{ session: Session | null }> = ({
   return (
     <SessionProvider session={session}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <Layout>
-          <Component {...pageProps} />
-          <Toaster />
-          <ShadcnToaster />
-        </Layout>
+        <DashboardProvider>
+          <Layout>
+            <Component {...pageProps} />
+            <Toaster />
+            <ShadcnToaster />
+          </Layout>
+        </DashboardProvider>
       </ThemeProvider>
     </SessionProvider>
   );
