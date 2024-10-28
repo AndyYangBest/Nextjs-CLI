@@ -97,7 +97,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const savedHistory = localStorage.getItem("dashboardHistory");
     if (savedHistory) {
-      setDashboardHistory(JSON.parse(savedHistory));
+      setDashboardHistory(JSON.parse(savedHistory) as SavedDashboard[]);
     }
     generateNewDashboard(); // Generate initial dashboard
   }, []);

@@ -18,7 +18,9 @@
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@tailus-ui/*": ["./src/components/tailus-ui/*"],
+      "@lib/*": ["./src/lib/*"]
     }
   },
   "include": [

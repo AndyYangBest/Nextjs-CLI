@@ -1,9 +1,10 @@
-import React from "react";
+import * as React from "react";
 import { useRouter } from "next/router";
-import Dashboard from "@/components/dashboard/Dashboard";
-import { useDashboard } from "@/components/dashboard/DashboardContext";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
+import { Heading } from "@/components/common/heading";
 import { Input } from "@/components/ui/input";
+import { RefreshCw, Save, Share2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,60 +12,153 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { defaultWidgets } from "@/components/dashboard/DashboardWidgets";
-import { Heading } from "@/components/common/heading";
-import { PlusCircle } from "lucide-react";
-import { type Layout } from "@/types/dashboard";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { dashboardManager, TEMPLATES, CHARTS } from "@/lib/dashboard-manager";
+import { generateRandomData } from "@/lib/data-generator";
+import type { LayoutConfig, LayoutItem } from "@/types/dashboard";
 
-export default function DashboardPage() {
+// Dynamically import Dashboard component to avoid SSR issues
+const Dashboard = dynamic(() => import("@/components/dashboard/Dashboard"), {
+  ssr: false,
+});
+
+const DashboardPage: React.FC = () => {
   const router = useRouter();
-  const {
-    currentDashboard,
-    saveDashboard,
-    updateCurrentLayout,
-    generateNewDashboard,
-  } = useDashboard();
-  const [newDashboardName, setNewDashboardName] = React.useState("");
+  const [ready, setReady] = React.useState(false);
+  const [config, setConfig] = React.useState<LayoutConfig | null>(null);
+  const [layout, setLayout] = React.useState<LayoutItem[]>([]);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [saveTitle, setSaveTitle] = React.useState("");
+  const [shareType, setShareType] = React.useState<"hash" | "id">("hash");
 
-  // Generate new dashboard on initial load
+  // Initialize loading
   React.useEffect(() => {
-    generateNewDashboard();
-  }, []);
+    const loadDashboard = async () => {
+      const identifier =
+        typeof window !== "undefined"
+          ? window.location.hash.slice(1) ||
+            (router.query.id as string) ||
+            "random"
+          : "random";
 
-  const handleLayoutChange = (newLayout: Layout) => {
-    updateCurrentLayout(newLayout);
+      const loadedConfig = await dashboardManager.load(identifier);
+      if (loadedConfig) {
+        setConfig(loadedConfig);
+        setLayout(loadedConfig.layout);
+      }
+      setReady(true);
+    };
+
+    void loadDashboard();
+  }, [router.query.id]);
+
+  const handleLayoutChange = (newLayout: LayoutItem[]) => {
+    setLayout(newLayout);
+    if (config) {
+      setConfig({
+        ...config,
+        layout: newLayout,
+      });
+    }
   };
 
-  const handleSaveDashboard = () => {
-    if (!newDashboardName) return;
-    saveDashboard(newDashboardName);
-    setNewDashboardName("");
+  const handleRandomize = () => {
+    const newConfig = dashboardManager.generateRandom();
+    setConfig(newConfig);
+    setLayout(newConfig.layout);
+    if (typeof window !== "undefined") {
+      window.location.hash = "";
+    }
+  };
+
+  const handleTemplateChange = async (template: string) => {
+    const newConfig = await dashboardManager.load(`template/${template}`);
+    if (newConfig) {
+      setConfig(newConfig);
+      setLayout(newConfig.layout);
+      if (typeof window !== "undefined") {
+        window.location.hash = `template/${template}`;
+      }
+    }
+  };
+
+  const handleSave = () => {
+    if (!config || !saveTitle) return;
+
+    const id = dashboardManager.save(config, saveTitle);
+    setSaveTitle("");
     setIsDialogOpen(false);
-    void router.push("/dashboard/saved");
+
+    void router.push(`/dashboard/${id}`);
   };
+
+  const handleShare = () => {
+    if (!config) return;
+
+    const shareUrl = `${
+      window.location.origin
+    }/dashboard${dashboardManager.generateShareUrl(config, shareType)}`;
+
+    if (typeof window !== "undefined") {
+      void navigator.clipboard.writeText(shareUrl);
+    }
+  };
+
+  if (!ready) {
+    return null;
+  }
 
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
         <Heading
-          title={currentDashboard?.name ?? "New Dashboard"}
-          description="Drag widgets to reorganize your dashboard"
+          title="Dynamic Dashboard"
+          description="Create, customize and share your dashboard"
         />
 
-        <div className="flex gap-4">
-          <Button
-            variant="outline"
-            onClick={() => void router.push("/dashboard/saved")}
+        <div className="flex items-center space-x-4">
+          <Select onValueChange={handleTemplateChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select template" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(TEMPLATES).map(([key, _]) => (
+                <SelectItem key={key} value={key}>
+                  {key.charAt(0).toUpperCase() + key.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={shareType}
+            onValueChange={(v: "hash" | "id") => setShareType(v)}
           >
-            Saved Dashboards
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Share type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="hash">Share as URL</SelectItem>
+              <SelectItem value="id">Share as ID</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button onClick={handleRandomize}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Randomize
           </Button>
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Save Layout
+                <Save className="mr-2 h-4 w-4" />
+                Save
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -74,30 +168,54 @@ export default function DashboardPage() {
               <div className="grid gap-4 py-4">
                 <Input
                   placeholder="Dashboard name"
-                  value={newDashboardName}
-                  onChange={(e) => setNewDashboardName(e.target.value)}
+                  value={saveTitle}
+                  onChange={(e) => setSaveTitle(e.target.value)}
                 />
-                <Button onClick={handleSaveDashboard}>Save</Button>
+                <Button onClick={handleSave} disabled={!saveTitle}>
+                  Save
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
+
+          <Button variant="outline" onClick={handleShare}>
+            <Share2 className="mr-2 h-4 w-4" />
+            Share
+          </Button>
         </div>
       </div>
 
-      <Dashboard
-        items={currentDashboard?.items ?? defaultWidgets}
-        layout={
-          currentDashboard?.layout ??
-          defaultWidgets.map((widget, i) => ({
-            i: widget.id,
-            x: (i * 4) % 12,
-            y: Math.floor(i / 3) * 4,
-            w: widget.defaultSize?.w ?? 4,
-            h: widget.defaultSize?.h ?? 4,
-          }))
-        }
-        onLayoutChange={handleLayoutChange}
-      />
+      {config && (
+        <Dashboard
+          items={config.charts.map((id) => ({
+            id,
+            ...CHARTS[id],
+            component: React.createElement(CHARTS[id].component, {
+              data: generateRandomData(id),
+            }),
+          }))}
+          layout={layout}
+          onLayoutChange={handleLayoutChange}
+        />
+      )}
+
+      <div className="mt-6 rounded-lg border p-4">
+        <h3 className="mb-2 font-semibold">Available Chart Codes</h3>
+        <div className="grid grid-cols-4 gap-4">
+          {Object.entries(CHARTS).map(([code, config]) => (
+            <div key={code} className="flex items-center gap-2">
+              <code className="rounded bg-muted px-1.5 py-0.5 text-sm">
+                {code}
+              </code>
+              <span className="text-sm text-muted-foreground">
+                {config.title}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default DashboardPage;

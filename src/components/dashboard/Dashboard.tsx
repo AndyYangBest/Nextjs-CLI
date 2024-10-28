@@ -1,4 +1,3 @@
-// src/components/dashboard/Dashboard.tsx
 import React from "react";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import { Card } from "@/components/ui/card";
@@ -32,8 +31,22 @@ const Dashboard: React.FC<DashboardProps> = ({
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
         rowHeight={60}
         onLayoutChange={(_, allLayouts) => {
-          onLayoutChange?.(allLayouts.lg);
+          if (allLayouts.lg) {
+            onLayoutChange?.(allLayouts.lg);
+          }
         }}
+        // 启用紧凑布局
+        compactType="vertical"
+        // 防止布局溢出容器
+        preventCollision={false}
+        // 使用更小的margin来减少组件间距
+        margin={[4, 4]}
+        // 启用自动大小调整
+        autoSize={true}
+        // 允许组件重叠以实现更紧凑的布局
+        allowOverlap={false}
+        // 使用像素单位以获得更精确的控制
+        useCSSTransforms={true}
         isDraggable
         isResizable
       >
@@ -43,7 +56,6 @@ const Dashboard: React.FC<DashboardProps> = ({
               <div className="h-full p-4">
                 <h3 className="mb-2 font-semibold">{item.title}</h3>
                 <div className="h-[calc(100%-2rem)]">
-                  {/* Ensure component is a valid React element */}
                   {React.isValidElement(item.component) ? item.component : null}
                 </div>
               </div>
