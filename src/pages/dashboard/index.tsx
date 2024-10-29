@@ -23,7 +23,6 @@ import { dashboardManager, TEMPLATES, CHARTS } from "@/lib/dashboard-manager";
 import { generateRandomData } from "@/lib/data-generator";
 import type { LayoutConfig, LayoutItem } from "@/types/dashboard";
 
-// Dynamically import Dashboard component to avoid SSR issues
 const Dashboard = dynamic(() => import("@/components/dashboard/Dashboard"), {
   ssr: false,
 });
@@ -36,8 +35,39 @@ const DashboardPage: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [saveTitle, setSaveTitle] = React.useState("");
   const [shareType, setShareType] = React.useState<"hash" | "id">("hash");
+  const [barOpacity, setBarOpacity] = React.useState({
+    Running: 1,
+    Swimming: 1,
+    Cycling: 1,
+    Weightlifting: 1,
+    Yoga: 1,
+    Pilates: 1,
+    Boxing: 1,
+  });
 
-  // Initialize loading
+  const handleBarMouseEnter = (o) => {
+    const { dataKey } = o;
+    setBarOpacity((op) => {
+      const newOpacity = { ...op };
+      Object.keys(newOpacity).forEach((key) => {
+        newOpacity[key] = key === dataKey ? 1 : 0.25;
+      });
+      return newOpacity;
+    });
+  };
+
+  const handleBarMouseLeave = () => {
+    setBarOpacity({
+      Running: 1,
+      Swimming: 1,
+      Cycling: 1,
+      Weightlifting: 1,
+      Yoga: 1,
+      Pilates: 1,
+      Boxing: 1,
+    });
+  };
+
   React.useEffect(() => {
     const loadDashboard = async () => {
       const identifier =
@@ -189,10 +219,16 @@ const DashboardPage: React.FC = () => {
         <Dashboard
           items={config.charts.map((id) => ({
             id,
-            ...CHARTS[id],
-            component: React.createElement(CHARTS[id].component, {
-              data: generateRandomData(id),
-            }),
+            title: CHARTS[id].title,
+            component:
+              typeof CHARTS[id].component === "function"
+                ? CHARTS[id].component({
+                    data: generateRandomData(CHARTS[id].dataKey),
+                    opacity: barOpacity,
+                    onMouseEnter: handleBarMouseEnter,
+                    onMouseLeave: handleBarMouseLeave,
+                  })
+                : CHARTS[id].component,
           }))}
           layout={layout}
           onLayoutChange={handleLayoutChange}

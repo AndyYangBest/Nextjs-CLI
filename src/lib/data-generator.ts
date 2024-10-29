@@ -1,5 +1,4 @@
-// Dashboard data generator
-export const generateRandomData = (widgetId: string) => {
+export const generateRandomData = (dataKey: string) => {
   const months = [
     "Jan",
     "Feb",
@@ -15,7 +14,7 @@ export const generateRandomData = (widgetId: string) => {
     "Dec",
   ];
 
-  switch (widgetId) {
+  switch (dataKey) {
     case "visitors-revenue":
       return {
         chartData: months.map((month) => ({
@@ -41,7 +40,6 @@ export const generateRandomData = (widgetId: string) => {
       };
 
     case "crypto-chart":
-      // Generate 6 months of daily data
       return Array.from({ length: 180 }, (_, i) => {
         const date = new Date();
         date.setDate(date.getDate() - i);
@@ -63,6 +61,26 @@ export const generateRandomData = (widgetId: string) => {
           fill: "var(--dv-primary-900)",
         },
       ];
+
+    case "small-charts":
+      return {
+        orders: {
+          count: 639400,
+          change: 36,
+          data: months.map((month) => ({
+            name: month,
+            Primary: Math.floor(Math.random() * 1000) + 500,
+          })),
+        },
+        customers: {
+          count: 478000,
+          change: -13,
+          data: months.map((month) => ({
+            name: month,
+            Accent: Math.floor(Math.random() * 800) + 300,
+          })),
+        },
+      };
 
     case "category-chart":
       return {
@@ -96,24 +114,40 @@ export const generateRandomData = (widgetId: string) => {
         ],
       };
 
-    case "small-charts":
+    case "radar-chart":
+      return [
+        { subject: "Math", A: 120, B: 110, fullMark: 150 },
+        { subject: "Chinese", A: 98, B: 130, fullMark: 150 },
+        { subject: "English", A: 86, B: 130, fullMark: 150 },
+        { subject: "Geography", A: 99, B: 100, fullMark: 150 },
+        { subject: "Physics", A: 85, B: 90, fullMark: 150 },
+        { subject: "History", A: 65, B: 85, fullMark: 150 },
+      ];
+
+    case "scatter-chart":
       return {
-        orders: {
-          count: 639400,
-          change: 36,
-          data: months.map((month) => ({
-            name: month,
-            Primary: Math.floor(Math.random() * 1000) + 500,
-          })),
-        },
-        customers: {
-          count: 478000,
-          change: -13,
-          data: months.map((month) => ({
-            name: month,
-            Accent: Math.floor(Math.random() * 800) + 300,
-          })),
-        },
+        data01: [
+          { x: 100, y: 200, z: 200 },
+          { x: 120, y: 100, z: 260 },
+          { x: 170, y: 300, z: 400 },
+          { x: 140, y: 250, z: 280 },
+          { x: 150, y: 400, z: 500 },
+          { x: 110, y: 280, z: 200 },
+        ],
+        data02: [
+          { x: 300, y: 300, z: 200 },
+          { x: 400, y: 500, z: 260 },
+          { x: 200, y: 700, z: 400 },
+          { x: 340, y: 350, z: 280 },
+          { x: 560, y: 500, z: 500 },
+          { x: 230, y: 780, z: 200 },
+          { x: 500, y: 400, z: 200 },
+          { x: 300, y: 500, z: 260 },
+          { x: 240, y: 300, z: 400 },
+          { x: 320, y: 550, z: 280 },
+          { x: 500, y: 400, z: 500 },
+          { x: 420, y: 280, z: 200 },
+        ],
       };
 
     default:

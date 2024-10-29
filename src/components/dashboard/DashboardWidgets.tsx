@@ -22,7 +22,7 @@ import { CustomTooltip } from "@tailus-ui/visualizations";
 import { Text, Title, Caption } from "@tailus-ui/typography";
 import Badge from "@tailus-ui/Badge";
 import { area } from "@tailus/themer";
-import { Simple as RadialBarWidget } from "@tailus-ui/RadialBarWidget";
+import { RadialBarWidget as RadialBarWidget } from "@tailus-ui/RadialBarWidget";
 import { CategoryBar as CategoryPieWidget } from "@tailus-ui/CategoryPieWidget";
 import { CategoryBar2 as HorizontalBarWidget } from "@tailus-ui/CategoryBar2";
 import { DomainRadarChart as RadarWidget } from "@tailus-ui/RadarWidget";
@@ -159,46 +159,6 @@ export const CryptoChart = () => {
               }}
             />
           </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </Card>
-  );
-};
-
-// Radial Chart Component
-export const RadialChart = () => {
-  const data = generateRandomData("radial-chart");
-
-  return (
-    <Card className="p-6">
-      <Title as="h2" size="lg" weight="medium" className="mb-1">
-        Storage Usage
-      </Title>
-      <Text className="mb-0 mt-1" size="sm">
-        Storage distribution by type
-      </Text>
-
-      <div className="h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <RadialBarChart
-            innerRadius={20}
-            outerRadius={140}
-            barSize={10}
-            data={data}
-          >
-            <PolarRadiusAxis />
-            <RadialBar
-              background={{ fill: "var(--ui-border-color)" }}
-              dataKey="pv"
-              cornerRadius={12}
-            />
-            <Legend
-              iconSize={10}
-              layout="vertical"
-              verticalAlign="middle"
-              align="right"
-            />
-          </RadialBarChart>
         </ResponsiveContainer>
       </div>
     </Card>

@@ -6,47 +6,9 @@ import {
   XAxis,
   Legend,
 } from "recharts";
-import { useState } from "react";
 import { legendText } from "@tailus-ui/visualizations";
 import { Title, Text } from "@tailus-ui/typography";
 import { Card } from "@/components/ui/card";
-
-const useOpacity = () => {
-  const [opacity, setOpacity] = useState({
-    Running: 1,
-    Swimming: 1,
-    Cycling: 1,
-    Weightlifting: 1,
-    Yoga: 1,
-    Pilates: 1,
-    Boxing: 1,
-  });
-
-  const handleMouseEnter = (o) => {
-    const { dataKey } = o;
-    setOpacity((op) => {
-      const newOpacity = { ...op };
-      Object.keys(newOpacity).forEach((key) => {
-        newOpacity[key] = key === dataKey ? 1 : 0.25;
-      });
-      return newOpacity;
-    });
-  };
-
-  const handleMouseLeave = () => {
-    setOpacity({
-      Running: 1,
-      Swimming: 1,
-      Cycling: 1,
-      Weightlifting: 1,
-      Yoga: 1,
-      Pilates: 1,
-      Boxing: 1,
-    });
-  };
-
-  return { opacity, handleMouseEnter, handleMouseLeave };
-};
 
 const barData = [
   {
@@ -82,9 +44,7 @@ export const categoryBarData = [
   },
 ];
 
-export const CategoryBar2 = () => {
-  const { opacity, handleMouseEnter, handleMouseLeave } = useOpacity();
-
+export const CategoryBar2 = ({ opacity, onMouseEnter, onMouseLeave }) => {
   return (
     <Card className="p-6">
       <div>
@@ -115,8 +75,8 @@ export const CategoryBar2 = () => {
             />
             <Legend
               formatter={legendText}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
+              onMouseEnter={onMouseEnter}
+              onMouseLeave={onMouseLeave}
               align="left"
               iconType="circle"
               iconSize={8}

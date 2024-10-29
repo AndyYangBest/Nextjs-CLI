@@ -1,12 +1,12 @@
+import { CustomTooltip, legendText } from "@tailus-ui/visualizations";
 import {
-  ResponsiveContainer,
   RadialBarChart,
   RadialBar,
+  ResponsiveContainer,
+  PolarRadiusAxis,
   Legend,
   Tooltip,
 } from "recharts";
-import { CustomTooltip } from "@tailus-ui/visualizations";
-import { Card } from "@/components/ui/card";
 
 const data = [
   {
@@ -34,44 +34,43 @@ const data = [
     fill: "var(--dv-primary-900)",
   },
 ];
-
-export const Simple = () => {
+export const RadialBarWidget = () => {
   return (
-    <Card className="p-6">
-      <h2 className="mb-4 text-xl font-medium">Storage Distribution</h2>
-      <div className="mx-auto w-56">
-        <ResponsiveContainer aspect={1 / 1}>
-          <RadialBarChart
-            innerRadius={20}
-            outerRadius={120}
-            barGap={0}
-            data={data}
-          >
-            <RadialBar
-              label={{
-                position: "insideStart",
-                dataKey: "name",
-                fontSize: 11,
-                fill: "#fff",
-              }}
-              background={{ fill: "var(--ui-border-color)" }}
-              cornerRadius={12}
-              dataKey="pv"
-            />
-            <Legend
-              wrapperStyle={{ transform: "translate(125%, 0)" }}
-              align="right"
-              verticalAlign="middle"
-              layout="radial"
-              iconSize={8}
-              iconType="circle"
-            />
-            <Tooltip content={<CustomTooltip payload={[]} mixed label="" />} />
-          </RadialBarChart>
-        </ResponsiveContainer>
-      </div>
-    </Card>
+    <div data-shade="925" className="mx-auto w-56">
+      <ResponsiveContainer aspect={1 / 1}>
+        <RadialBarChart
+          innerRadius={20}
+          outerRadius={120}
+          barGap={0}
+          data={data}
+        >
+          <RadialBar
+            label={{
+              position: "insideStart",
+              dataKey: "name",
+              fontSize: 11,
+              fill: "#fff",
+            }}
+            background={{ fill: "var(--ui-border-color)" }}
+            cornerRadius={12}
+            dataKey="pv"
+          />
+          <Legend
+            wrapperStyle={{ transform: "translate(125%, 0)" }}
+            align="right"
+            verticalAlign="middle"
+            layout="radial"
+            iconSize={8}
+            iconType="circle"
+            formatter={legendText}
+          />
+          <Tooltip
+            key="pv"
+            content={<CustomTooltip payload={[]} active mixed label="" />}
+            cursor={{ stroke: "var(--placeholder-text-color)", strokeWidth: 1 }}
+          />
+        </RadialBarChart>
+      </ResponsiveContainer>
+    </div>
   );
 };
-
-export default Simple;

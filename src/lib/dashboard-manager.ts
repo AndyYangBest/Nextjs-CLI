@@ -1,16 +1,17 @@
-// src/lib/dashboard-manager.ts
 import { nanoid } from "nanoid";
 import {
   VisitorsRevenue,
   CryptoChart,
-  RadialChart,
   SmallCharts,
-  CategoryBar,
-  DomainRadarChart,
-  ScatterOverview,
-  Simple as RadialBarWidget,
 } from "@/components/dashboard/DashboardWidgets";
 import { generateRandomData } from "@/lib/data-generator";
+import { CategoryBar as CategoryPieWidget } from "@tailus-ui/CategoryPieWidget";
+import { CategoryBar2 as HorizontalBarWidget } from "@tailus-ui/CategoryBar2";
+import { DomainRadarChart as RadarWidget } from "@tailus-ui/RadarWidget";
+import { ScatterOverview as ScatterWidget } from "@tailus-ui/ScatterWidget";
+import AreaChartWidget from "@tailus-ui/AreaChartWidget";
+import BarChartWidget from "@tailus-ui/BarChartWidget";
+import { RadialBarWidget } from "@tailus-ui/RadialBarWidget";
 import type {
   ChartRegistry,
   LayoutConfig,
@@ -18,61 +19,68 @@ import type {
   SavedDashboard,
 } from "@/types/dashboard";
 
-// 图表注册表
 export const CHARTS: ChartRegistry = {
   v: {
     component: VisitorsRevenue,
     title: "Visitors & Revenue",
-    size: [6, 9],
+    dataKey: "visitors-revenue",
   },
   m: {
     component: SmallCharts,
     title: "Key Metrics",
-    size: [3, 4],
-  },
-  p: {
-    component: CategoryBar,
-    title: "Categories",
-    size: [3, 7],
+    dataKey: "small-charts",
   },
   c: {
     component: CryptoChart,
     title: "Crypto Trends",
-    size: [6, 8],
+    dataKey: "crypto-chart",
   },
   r: {
-    component: RadialChart,
-    title: "Distribution",
-    size: [3, 6],
+    component: RadialBarWidget,
+    title: "Storage Distribution",
+    dataKey: "radial-chart",
+  },
+  a: {
+    component: AreaChartWidget,
+    title: "Visitors & Revenue Overview",
+    dataKey: "visitors-revenue",
+  },
+  b: {
+    component: BarChartWidget,
+    title: "Revenue Distribution",
+    dataKey: "visitors-revenue",
+  },
+  p: {
+    component: CategoryPieWidget,
+    title: "Activity Distribution",
+    dataKey: "category-chart",
+  },
+  h: {
+    component: HorizontalBarWidget,
+    title: "Data Usage",
+    dataKey: "category-chart",
   },
   d: {
-    component: DomainRadarChart,
-    title: "Performance",
-    size: [3, 7],
+    component: RadarWidget,
+    title: "Performance Analysis",
+    dataKey: "radar-chart",
   },
   s: {
-    component: ScatterOverview,
-    title: "Scatter Analysis",
-    size: [4, 7],
-  },
-  t: {
-    component: RadialBarWidget,
-    title: "Storage",
-    size: [3, 6],
+    component: ScatterWidget,
+    title: "School Comparison",
+    dataKey: "scatter-chart",
   },
 };
 
-// 预设模板
 export const TEMPLATES = {
   basic: "v-m-p",
   data: "c-r-s",
-  full: "v-c-r-m-p-t",
+  full: "v-c-r-m-p-a-b-h-d-s",
 } as const;
 
 export class DashboardManager {
   private readonly storageKey = "saved_dashboards";
 
-  // 解析布局字符串
   private parseLayoutString(str: string): LayoutConfig | null {
     try {
       const [charts, layout] = str.split("/");
@@ -105,18 +113,17 @@ export class DashboardManager {
     }
   }
 
-  // 生成默认布局
   private generateDefaultLayout(chartIds: string[]): LayoutItem[] {
     let x = 0,
       y = 0;
 
     return chartIds.map((id) => {
-      const chart = CHARTS[id];
-      const [w, h] = chart.size;
+      const w = 6,
+        h = 8;
 
       if (x + w > 12) {
         x = 0;
-        y += Math.max(...chartIds.map((cid) => CHARTS[cid].size[1]));
+        y += h;
       }
 
       const pos = { i: id, x, y, w, h };
@@ -125,7 +132,6 @@ export class DashboardManager {
     });
   }
 
-  // 序列化布局为字符串
   private serializeLayout(config: LayoutConfig): string {
     const layoutStr = config.layout
       .map(({ x, y, w, h }) => [x, y, w, h].join(","))
@@ -134,7 +140,6 @@ export class DashboardManager {
     return `${config.charts.join("-")}/${layoutStr}`;
   }
 
-  // 生成随机布局
   generateRandom(count = 4): LayoutConfig {
     const chartIds = Object.keys(CHARTS);
     const selected = [];
@@ -152,9 +157,7 @@ export class DashboardManager {
     };
   }
 
-  // 从标识符加载配置
   async load(identifier: string): Promise<LayoutConfig | null> {
-    // Case 1: 短ID
     if (identifier.match(/^[a-zA-Z0-9]{8}$/)) {
       const saved = this.getSaved(identifier);
       if (saved) {
@@ -165,23 +168,19 @@ export class DashboardManager {
       }
     }
 
-    // Case 2: 模板
     if (identifier.startsWith("template/")) {
       const templateName = identifier.split("/")[1] as keyof typeof TEMPLATES;
       const template = TEMPLATES[templateName];
       return template ? this.parseLayoutString(template) : null;
     }
 
-    // Case 3: 布局字符串
     if (identifier.includes("-")) {
       return this.parseLayoutString(identifier);
     }
 
-    // Case 4: 随机生成
     return this.generateRandom();
   }
 
-  // 保存配置
   save(config: LayoutConfig, title?: string): string {
     const id = nanoid(8);
     const savedConfig: SavedDashboard = {
@@ -198,13 +197,11 @@ export class DashboardManager {
     return id;
   }
 
-  // 获取保存的配置
   getSaved(id: string): SavedDashboard | null {
     const saved = this.getAllSaved();
     return saved[id] || null;
   }
 
-  // 获取所有保存的配置
   getAllSaved(): Record<string, SavedDashboard> {
     try {
       const data = localStorage.getItem(this.storageKey);
@@ -214,14 +211,12 @@ export class DashboardManager {
     }
   }
 
-  // 删除保存的配置
   deleteSaved(id: string): void {
     const saved = this.getAllSaved();
     delete saved[id];
     localStorage.setItem(this.storageKey, JSON.stringify(saved));
   }
 
-  // 生成分享URL
   generateShareUrl(config: LayoutConfig, type: "hash" | "id" = "hash"): string {
     if (type === "hash") {
       return `#${this.serializeLayout(config)}`;
@@ -232,5 +227,4 @@ export class DashboardManager {
   }
 }
 
-// 导出单例实例
 export const dashboardManager = new DashboardManager();
