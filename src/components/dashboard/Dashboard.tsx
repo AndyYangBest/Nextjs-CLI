@@ -56,7 +56,9 @@ const Dashboard: React.FC<DashboardProps> = ({
               <div className="h-full p-4">
                 <h3 className="mb-2 font-semibold">{item.title}</h3>
                 <div className="h-[calc(100%-2rem)]">
-                  {React.isValidElement(item.component) ? item.component : null}
+                  {typeof item.component === "function"
+                    ? React.createElement(item.component)
+                    : item.component}
                 </div>
               </div>
             </Card>

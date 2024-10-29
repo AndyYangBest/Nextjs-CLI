@@ -1,3 +1,4 @@
+// src/pages/dashboard/index.tsx
 import * as React from "react";
 import { useRouter } from "next/router";
 import dynamic from "next/dynamic";
@@ -22,6 +23,8 @@ import {
 import { dashboardManager, TEMPLATES, CHARTS } from "@/lib/dashboard-manager";
 import { generateRandomData } from "@/lib/data-generator";
 import type { LayoutConfig, LayoutItem } from "@/types/dashboard";
+import { api } from "@/utils/api";
+import { VisitorsRevenue } from "@/components/dashboard/DashboardWidgets";
 
 const Dashboard = dynamic(() => import("@/components/dashboard/Dashboard"), {
   ssr: false,
@@ -45,7 +48,22 @@ const DashboardPage: React.FC = () => {
     Boxing: 1,
   });
 
-  const handleBarMouseEnter = (o) => {
+  // 添加访客收入数据查询
+  const {
+    data: visitorsRevenueData,
+    isLoading: isLoadingVisitorsRevenue,
+    error: visitorsRevenueError,
+  } = api.visitorsRevenue.getData.useQuery(
+    { timeframe: "month" },
+    {
+      staleTime: 1000 * 60 * 10, // 10分钟缓存
+      retry: 3,
+    }
+  );
+
+  console.log("visitorsRevenueData", visitorsRevenueData);
+
+  const handleBarMouseEnter = React.useCallback((o) => {
     const { dataKey } = o;
     setBarOpacity((op) => {
       const newOpacity = { ...op };
@@ -54,9 +72,9 @@ const DashboardPage: React.FC = () => {
       });
       return newOpacity;
     });
-  };
+  }, []);
 
-  const handleBarMouseLeave = () => {
+  const handleBarMouseLeave = React.useCallback(() => {
     setBarOpacity({
       Running: 1,
       Swimming: 1,
@@ -66,16 +84,17 @@ const DashboardPage: React.FC = () => {
       Pilates: 1,
       Boxing: 1,
     });
-  };
+  }, []);
 
   React.useEffect(() => {
     const loadDashboard = async () => {
+      // 只在客户端运行时加载
+      if (typeof window === "undefined") return;
+
       const identifier =
-        typeof window !== "undefined"
-          ? window.location.hash.slice(1) ||
-            (router.query.id as string) ||
-            "random"
-          : "random";
+        window.location.hash.slice(1) ||
+        (router.query.id as string) ||
+        "random";
 
       const loadedConfig = await dashboardManager.load(identifier);
       if (loadedConfig) {
@@ -86,17 +105,20 @@ const DashboardPage: React.FC = () => {
     };
 
     void loadDashboard();
-  }, [router.query.id]);
+  }, [router.query.id]); // 只依赖 router.query.id
 
-  const handleLayoutChange = (newLayout: LayoutItem[]) => {
+  // 使用 useCallback 记忆化其他处理函数
+  const handleLayoutChange = React.useCallback((newLayout: LayoutItem[]) => {
     setLayout(newLayout);
-    if (config) {
-      setConfig({
-        ...config,
-        layout: newLayout,
-      });
-    }
-  };
+    setConfig((prevConfig) =>
+      prevConfig
+        ? {
+            ...prevConfig,
+            layout: newLayout,
+          }
+        : null
+    );
+  }, []);
 
   const handleRandomize = () => {
     const newConfig = dashboardManager.generateRandom();
@@ -139,6 +161,46 @@ const DashboardPage: React.FC = () => {
       void navigator.clipboard.writeText(shareUrl);
     }
   };
+
+  const getDashboardItems = React.useCallback(() => {
+    if (!config) return [];
+
+    return config.charts.map((id) => {
+      if (id === "v") {
+        const data =
+          !visitorsRevenueData || visitorsRevenueError
+            ? generateRandomData("visitors-revenue")
+            : visitorsRevenueData;
+
+        return {
+          id,
+          title: CHARTS[id].title,
+          component: <VisitorsRevenue data={data} />,
+        };
+      }
+
+      return {
+        id,
+        title: CHARTS[id].title,
+        component:
+          typeof CHARTS[id].component === "function"
+            ? CHARTS[id].component({
+                data: generateRandomData(CHARTS[id].dataKey),
+                opacity: barOpacity,
+                onMouseEnter: handleBarMouseEnter,
+                onMouseLeave: handleBarMouseLeave,
+              })
+            : CHARTS[id].component,
+      };
+    });
+  }, [
+    config,
+    visitorsRevenueData,
+    visitorsRevenueError,
+    barOpacity,
+    handleBarMouseEnter,
+    handleBarMouseLeave,
+  ]);
 
   if (!ready) {
     return null;
@@ -217,19 +279,7 @@ const DashboardPage: React.FC = () => {
 
       {config && (
         <Dashboard
-          items={config.charts.map((id) => ({
-            id,
-            title: CHARTS[id].title,
-            component:
-              typeof CHARTS[id].component === "function"
-                ? CHARTS[id].component({
-                    data: generateRandomData(CHARTS[id].dataKey),
-                    opacity: barOpacity,
-                    onMouseEnter: handleBarMouseEnter,
-                    onMouseLeave: handleBarMouseLeave,
-                  })
-                : CHARTS[id].component,
-          }))}
+          items={getDashboardItems()}
           layout={layout}
           onLayoutChange={handleLayoutChange}
         />

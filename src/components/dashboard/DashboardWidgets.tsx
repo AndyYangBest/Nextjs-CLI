@@ -29,17 +29,111 @@ import { DomainRadarChart as RadarWidget } from "@tailus-ui/RadarWidget";
 import { ScatterOverview as ScatterWidget } from "@tailus-ui/ScatterWidget";
 import AreaChartWidget from "@tailus-ui/AreaChartWidget";
 import BarChartWidget from "@tailus-ui/BarChartWidget";
+// import VisitorsRevenue from "@tailus-ui/VisitorsRevenueChart";
 
 // Visitors & Revenue Chart
-export const VisitorsRevenue = () => {
-  const data = generateRandomData("visitors-revenue");
+const StatCard = ({ title, value, change }) => (
+  <div className="rounded-lg bg-muted/50 p-4">
+    <span className="text-sm text-muted-foreground">{title}</span>
+    <div className="mt-2 flex items-center gap-3">
+      <span className="text-xl font-medium">{value}</span>
+      <span
+        className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${
+          change >= 0
+            ? "bg-success/20 text-success"
+            : "bg-destructive/20 text-destructive"
+        }`}
+      >
+        {change >= 0 ? (
+          <TrendingUp className="h-3 w-3" />
+        ) : (
+          <TrendingDown className="h-3 w-3" />
+        )}
+        {Math.abs(change)}%
+      </span>
+    </div>
+  </div>
+);
+// export const VisitorsRevenue = () => {
+//   const data = generateRandomData("visitors-revenue");
 
+//   console.log(data);
+
+//   return (
+//     <Card className="w-full p-6">
+//       <div className="mb-6">
+//         <h2 className="mb-1 text-xl font-medium">This is GPT created</h2>
+//         <p className="text-sm text-muted-foreground">This one is GPT created</p>
+//       </div>
+
+//       <div className="my-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
+//         <StatCard
+//           title="Visitors"
+//           value={data.stats.visitors.count.toLocaleString()}
+//           change={data.stats.visitors.change}
+//         />
+//         <StatCard
+//           title="Revenue"
+//           value={`$${data.stats.revenue.count.toLocaleString()}`}
+//           change={data.stats.revenue.change}
+//         />
+//         <StatCard
+//           title="Savings"
+//           value={`$${data.stats.savings.count.toLocaleString()}`}
+//           change={data.stats.savings.change}
+//         />
+//       </div>
+
+//       <div className="h-72 w-full">
+//         <ResponsiveContainer>
+//           <BarChart data={data.chartData}>
+//             <CartesianGrid
+//               strokeDasharray="3 3"
+//               vertical={false}
+//               stroke="var(--border)"
+//             />
+//             <XAxis
+//               dataKey="name"
+//               fontSize={12}
+//               tickLine={false}
+//               axisLine={false}
+//             />
+//             <YAxis fontSize={12} tickLine={false} axisLine={false} />
+//             <Tooltip />
+//             <Bar
+//               dataKey="Primary"
+//               fill="var(--dv-primary)"
+//               radius={[4, 4, 0, 0]}
+//             />
+//             <Bar
+//               dataKey="Accent"
+//               fill="var(--dv-accent)"
+//               radius={[4, 4, 0, 0]}
+//             />
+//             <Bar
+//               dataKey="Neutral"
+//               fill="var(--dv-neutral)"
+//               radius={[4, 4, 0, 0]}
+//             />
+//           </BarChart>
+//         </ResponsiveContainer>
+//       </div>
+//     </Card>
+//   );
+// };
+import { type VisitorsRevenueData } from "@/types/visitors-revenue";
+
+interface VisitorsRevenueProps {
+  data: VisitorsRevenueData;
+}
+
+export const VisitorsRevenue: React.FC<VisitorsRevenueProps> = ({ data }) => {
   return (
     <Card className="w-full p-6">
       <div className="mb-6">
         <h2 className="mb-1 text-xl font-medium">Visitors and Revenue</h2>
         <p className="text-sm text-muted-foreground">
-          New users by First user primary channel group
+          This is chatgpt generated data (external data)
         </p>
       </div>
 
@@ -70,7 +164,7 @@ export const VisitorsRevenue = () => {
               stroke="var(--border)"
             />
             <XAxis
-              dataKey="name"
+              dataKey="month"
               fontSize={12}
               tickLine={false}
               axisLine={false}
@@ -192,28 +286,6 @@ export const SmallCharts = () => {
 };
 
 // Helper Components
-const StatCard = ({ title, value, change }) => (
-  <div className="rounded-lg bg-muted/50 p-4">
-    <span className="text-sm text-muted-foreground">{title}</span>
-    <div className="mt-2 flex items-center gap-3">
-      <span className="text-xl font-medium">{value}</span>
-      <span
-        className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${
-          change >= 0
-            ? "bg-success/20 text-success"
-            : "bg-destructive/20 text-destructive"
-        }`}
-      >
-        {change >= 0 ? (
-          <TrendingUp className="h-3 w-3" />
-        ) : (
-          <TrendingDown className="h-3 w-3" />
-        )}
-        {Math.abs(change)}%
-      </span>
-    </div>
-  </div>
-);
 
 const SmallChart = ({ title, value, change, data, intent, dataKey }) => (
   <Card className="p-4">
@@ -275,62 +347,62 @@ export const defaultWidgets = [
   {
     id: "small-charts",
     title: "Key Metrics",
-    component: <SmallCharts />,
+    component: SmallCharts,
     defaultSize: { w: 3, h: 4 },
   },
   {
     id: "visitors-revenue",
     title: "Visitors & Revenue",
-    component: <VisitorsRevenue />,
+    component: VisitorsRevenue,
     defaultSize: { w: 6, h: 9 },
   },
   {
     id: "crypto-chart",
     title: "Crypto Trends",
-    component: <CryptoChart />,
+    component: CryptoChart,
     defaultSize: { w: 6, h: 8 },
   },
 
   {
     id: "radial-bar-chart",
     title: "Storage Distribution",
-    component: <RadialBarWidget />,
+    component: RadialBarWidget,
     defaultSize: { w: 3, h: 6 },
   },
   {
     id: "category-pie-chart",
     title: "Activity Distribution",
-    component: <CategoryPieWidget />,
+    component: CategoryPieWidget,
     defaultSize: { w: 3, h: 7 },
   },
   {
     id: "horizontal-bar-chart",
     title: "Data Usage",
-    component: <HorizontalBarWidget />,
+    component: HorizontalBarWidget,
     defaultSize: { w: 4, h: 4 },
   },
   {
     id: "radar-chart",
     title: "Performance Analysis",
-    component: <RadarWidget />,
+    component: RadarWidget,
     defaultSize: { w: 3, h: 7 },
   },
   {
     id: "scatter-chart",
     title: "School Comparison",
-    component: <ScatterWidget />,
+    component: ScatterWidget,
     defaultSize: { w: 4, h: 7 },
   },
   {
     id: "area-chart",
     title: "Visitors & Revenue Overview",
-    component: <AreaChartWidget />,
+    component: AreaChartWidget,
     defaultSize: { w: 3, h: 10 },
   },
   {
     id: "bar-chart",
     title: "Revenue Distribution",
-    component: <BarChartWidget />,
+    component: BarChartWidget,
     defaultSize: { w: 3, h: 7 },
   },
 ];

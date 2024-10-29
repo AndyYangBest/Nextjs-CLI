@@ -75,3 +75,29 @@ model Employee {
     createAt DateTime @default(now()) @map("create_at")
     updateAt DateTime @default(now()) @updatedAt @map("update_at")
 }
+
+
+
+// charts schema
+// 月度收入数据表
+model MonthlyRevenue {
+  id        String   @id @default(cuid())
+  month     DateTime
+  total     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([month])
+}
+
+// 加密货币价格历史
+model CryptoPrice {
+  id        String   @id @default(cuid())
+  date      DateTime
+  price     Float
+  symbol    String   // 比如 "BTC"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date, symbol])
+}
